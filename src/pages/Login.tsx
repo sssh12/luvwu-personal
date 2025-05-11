@@ -12,7 +12,6 @@ const Login = () => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      alert("로그인 성공!");
       navigate("/"); // 로그인 후 홈으로 이동
     } catch (error) {
       alert(
@@ -23,7 +22,7 @@ const Login = () => {
   };
 
   return (
-    <div className="p-4">
+    <div className="page-container">
       <h1 className="text-xl font-bold mb-4">로그인</h1>
       <form onSubmit={handleLogin}>
         <div className="mb-4">

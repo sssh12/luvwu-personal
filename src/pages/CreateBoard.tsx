@@ -14,6 +14,7 @@ const CreateBoard = () => {
 
     if (!user) {
       alert("로그인이 필요합니다.");
+      navigate("/login");
       return;
     }
 
@@ -32,7 +33,7 @@ const CreateBoard = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <div className="page-container">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">게시판 생성하기</h1>
       <form onSubmit={handleSubmit}>
         <div className="mb-6">

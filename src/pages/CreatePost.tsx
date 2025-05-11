@@ -2,7 +2,14 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
 import { db } from "../firebase/firebaseConfig";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 
 const CreatePost = () => {
   const { boardName } = useParams<{ boardName: string }>();
@@ -22,13 +29,28 @@ const CreatePost = () => {
     e.preventDefault();
 
     try {
+      // 게시판 존재 여부 확인
+      const boardQuery = query(
+        collection(db, "boards"),
+        where("name", "==", boardName)
+      );
+      const boardSnapshot = await getDocs(boardQuery);
+
+      if (boardSnapshot.empty) {
+        alert("존재하지 않는 게시판입니다.");
+        return;
+      }
+
+      // 게시글 추가
       await addDoc(collection(db, "posts"), {
         title,
         content,
         author: user?.email,
         board: boardName,
         createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
+
       setTitle("");
       setContent("");
       navigate(`/board/${boardName}`);
@@ -39,7 +61,7 @@ const CreatePost = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <div className="page-container">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">글 작성하기</h1>
       <form onSubmit={handleSubmit}>
         <div className="mb-6">

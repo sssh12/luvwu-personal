@@ -1,8 +1,18 @@
 import { Link } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
-import { Bars3Icon } from "@heroicons/react/24/outline";
+import {
+  Bars3Icon,
+  XMarkIcon,
+  UserCircleIcon,
+} from "@heroicons/react/24/outline";
 
-const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
+const Navbar = ({
+  toggleSidebar,
+  isSidebarOpen,
+}: {
+  toggleSidebar: () => void;
+  isSidebarOpen: boolean;
+}) => {
   const { user, logout } = useAuthContext();
 
   const handleLogout = async () => {
@@ -22,10 +32,16 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
       <div className="flex items-center">
         <button
           onClick={toggleSidebar}
-          className="mr-4 p-2 rounded-full hover:bg-gray-100 cursor-pointer transition"
-          title="사이드바 열기/닫기"
+          className="mr-4 p-2 rounded-full hover:bg-gray-100 cursor-pointer transition duration-300"
+          title={isSidebarOpen ? "사이드바 닫기" : "사이드바 열기"}
         >
-          <Bars3Icon className="h-6 w-6 text-gray-800" />
+          <div className="transition-transform duration-300">
+            {isSidebarOpen ? (
+              <XMarkIcon className="h-6 w-6 text-gray-800" /> // 닫기 아이콘
+            ) : (
+              <Bars3Icon className="h-6 w-6 text-gray-800" /> // 햄버거 아이콘
+            )}
+          </div>
         </button>
         <Link
           to="/"
@@ -35,6 +51,15 @@ const Navbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
         </Link>
       </div>
       <div className="flex items-center space-x-4">
+        {user && (
+          <Link
+            to="/profile"
+            className="cursor-pointer bg-gray-200 text-gray-500 p-2 rounded-full hover:bg-blue-500 hover:text-white transition duration-200"
+            title="프로필"
+          >
+            <UserCircleIcon className="h-6 w-6" />
+          </Link>
+        )}
         {user ? (
           <button
             onClick={handleLogout}

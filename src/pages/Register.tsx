@@ -6,21 +6,28 @@ import { useNavigate } from "react-router-dom";
 const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState(""); // 비밀번호 확인 상태 추가
   const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (password !== confirmPassword) {
+      alert("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       alert("회원가입 성공!");
-      navigate("/login"); // 회원가입 후 로그인 페이지로 이동
+      navigate("/");
     } catch (error) {
       alert("회원가입 실패: " + (error as any).message);
     }
   };
 
   return (
-    <div className="p-4">
+    <div className="page-container">
       <h1 className="text-xl font-bold mb-4">회원가입</h1>
       <form onSubmit={handleRegister}>
         <div className="mb-4">
@@ -46,6 +53,22 @@ const Register = () => {
             className="w-full border border-gray-300 p-2 rounded"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label
+            htmlFor="confirmPassword"
+            className="block text-sm font-medium"
+          >
+            비밀번호 확인
+          </label>
+          <input
+            type="password"
+            id="confirmPassword"
+            className="w-full border border-gray-300 p-2 rounded"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
         </div>

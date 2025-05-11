@@ -43,27 +43,54 @@ const Sidebar = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleDeleteBoard = async (boardId: string) => {
+  const handleDeleteBoard = async (boardName: string) => {
     const confirmDelete = window.confirm("게시판을 삭제하시겠습니까?");
     if (!confirmDelete) return;
 
     try {
-      // 게시판에 속한 글들 삭제
+      // 게시판에 속한 글들 가져오기
       const postsQuery = query(
         collection(db, "posts"),
-        where("board", "==", boardId)
+        where("board", "==", boardName)
       );
       const postsSnapshot = await getDocs(postsQuery);
 
-      const deletePromises = postsSnapshot.docs.map((doc) =>
-        deleteDoc(doc.ref)
+      // 글에 달린 댓글 삭제
+      const deleteCommentsPromises = postsSnapshot.docs.map(async (postDoc) => {
+        const postId = postDoc.id; // 글의 ID
+        const commentsQuery = query(
+          collection(db, "comments"),
+          where("postId", "==", postId)
+        );
+        const commentsSnapshot = await getDocs(commentsQuery);
+
+        const deleteComments = commentsSnapshot.docs.map((commentDoc) =>
+          deleteDoc(commentDoc.ref)
+        );
+        await Promise.all(deleteComments);
+      });
+
+      await Promise.all(deleteCommentsPromises);
+
+      // 글 삭제
+      const deletePostsPromises = postsSnapshot.docs.map((postDoc) =>
+        deleteDoc(postDoc.ref)
       );
-      await Promise.all(deletePromises);
+      await Promise.all(deletePostsPromises);
 
       // 게시판 삭제
-      await deleteDoc(doc(db, "boards", boardId));
+      const boardQuery = query(
+        collection(db, "boards"),
+        where("name", "==", boardName)
+      );
+      const boardSnapshot = await getDocs(boardQuery);
+
+      const deleteBoardPromises = boardSnapshot.docs.map((boardDoc) =>
+        deleteDoc(boardDoc.ref)
+      );
+      await Promise.all(deleteBoardPromises);
     } catch (error) {
-      console.error("Error deleting board and posts:", error);
+      console.error("Error deleting board, posts, and comments:", error);
       alert("게시판 삭제 중 오류가 발생했습니다.");
     }
   };
@@ -91,7 +118,7 @@ const Sidebar = () => {
               </div>
               {user?.email === board.createdBy && (
                 <button
-                  onClick={() => handleDeleteBoard(board.id)}
+                  onClick={() => handleDeleteBoard(board.name)}
                   className="cursor-pointer bg-gray-200 text-gray-500 px-3 py-2 rounded-full hover:bg-red-500 hover:text-white transition duration-200"
                   title="게시판 삭제"
                 >
