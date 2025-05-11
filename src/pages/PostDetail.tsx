@@ -111,6 +111,12 @@ const PostDetail = () => {
   }, [postId, currentPage]);
 
   const handleAddComment = async () => {
+    if (!user) {
+      alert("로그인이 필요합니다.");
+      navigate("/login");
+      return;
+    }
+
     if (!postId || !newComment.trim()) return;
 
     try {
@@ -119,7 +125,7 @@ const PostDetail = () => {
       await addDoc(commentRef, {
         postId,
         content: newComment,
-        author: user?.email || "익명",
+        author: user.email || "익명",
         createdAt: timestamp,
         updatedAt: timestamp,
       });
@@ -157,6 +163,19 @@ const PostDetail = () => {
     if (!window.confirm("게시글을 삭제하시겠습니까?")) return;
 
     try {
+      // 게시글 데이터 가져오기
+      const postRef = doc(db, "posts", postId!);
+      const postSnapshot = await getDocs(
+        query(collection(db, "posts"), where("__name__", "==", postId))
+      );
+
+      if (postSnapshot.empty) {
+        alert("게시글을 찾을 수 없습니다.");
+        return;
+      }
+
+      const boardName = postSnapshot.docs[0]?.data()?.board; // 게시판 이름 가져오기
+
       // 댓글 삭제
       const commentsQuery = query(
         collection(db, "comments"),
@@ -169,12 +188,6 @@ const PostDetail = () => {
       await Promise.all(deleteCommentsPromises);
 
       // 게시글 삭제
-      const postRef = doc(db, "posts", postId!);
-      const postSnapshot = await getDocs(
-        query(collection(db, "posts"), where("id", "==", postId))
-      );
-      const boardName = postSnapshot.docs[0]?.data()?.board; // 게시판 이름 가져오기
-
       await deleteDoc(postRef);
 
       // 게시판으로 이동
